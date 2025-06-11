@@ -1,0 +1,27 @@
+---
+# Main playbook for macOS setup automation
+
+- name: Configure macOS environment
+  hosts: localhost
+  become: yes
+  
+  pre_tasks:
+    - name: Ensure Homebrew is installed
+      stat:
+        path: /usr/local/bin/brew
+      register: brew_installed
+      tags: always
+    
+    - name: Display Homebrew status
+      debug:
+        msg: "Homebrew is {{ 'installed' if brew_installed.stat.exists else 'not installed' }}"
+      tags: always
+  
+  roles:
+    - homebrew
+  
+  post_tasks:
+    - name: Setup completed
+      debug:
+        msg: "macOS setup completed successfully"
+      tags: always

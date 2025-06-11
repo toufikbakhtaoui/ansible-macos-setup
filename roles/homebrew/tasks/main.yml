@@ -1,0 +1,20 @@
+---
+# Tasks for managing Homebrew packages
+
+- name: Update Homebrew
+  homebrew:
+    update_homebrew: yes
+  become: false
+  tags:
+    - homebrew
+    - update
+
+- name: Install brew packages
+  homebrew:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ homebrew_packages }}"
+  become: false
+  tags:
+    - homebrew
+    - install
