@@ -2,3 +2,5 @@
 # List of packages to install via Homebrew
 homebrew_packages:
   - aerospace
+  - nvim
+  - stow

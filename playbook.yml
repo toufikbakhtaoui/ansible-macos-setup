@@ -19,6 +19,7 @@
   
   roles:
     - homebrew
+    - dotfiles
   
   post_tasks:
     - name: Setup completed
