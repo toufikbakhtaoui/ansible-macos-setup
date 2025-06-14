@@ -1,7 +1,23 @@
-- name: Create symlinks with stow
-  command: stow -v -t ~ {{ item }}
+---
+- name: Ensure stow is installed
+  homebrew:
+    name: stow
+    state: present
+
+- name: Create parent directories for dotfiles
+  file:
+    path: "~/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - ".config"
+    # Ajoutez ici d'autres répertoires parents si nécessaire
+
+- name: Stow dotfiles (adopt mode)
+  command: "stow -v -t ~ --adopt {{ item }}"
   args:
     chdir: "{{ playbook_dir }}/dotfiles"
-  loop: "{{ lookup('fileglob', 'dotfiles/*').split(',') }}"
+  loop: "{{ lookup('fileglob', playbook_dir + '/dotfiles/*', wantlist=True) | map('basename') }}"
   register: stow_result
   changed_when: "'LINK' in stow_result.stdout"
+  ignore_errors: yes

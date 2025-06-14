@@ -1,9 +1,8 @@
----
 - name: Configure macOS development environment
   hosts: localhost
   connection: local
   gather_facts: yes
   
   roles:
-    - brew
+    - homebrew
     - stow

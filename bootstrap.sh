@@ -45,7 +45,7 @@ if [ -d "ansible-macos-setup" ]; then
     echo -e "${YELLOW}→ Updating existing repository${NC}"
     cd ansible-macos-setup && git pull && cd .. || fail "Failed to update repository"
 else
-    git clone git@github.com/toufikbakhtaoui/ansible-macos-setup.git || fail "Failed to clone repository"
+    git clone git@github.com:toufikbakhtaoui/ansible-macos-setup.git || fail "Failed to clone repository"
 fi
 
 # Step 4: Execute Ansible playbook

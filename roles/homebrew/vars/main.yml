@@ -1,4 +1,3 @@
----
-brew_packages:
+homebrew_packages:
   - stow
   - nvim
