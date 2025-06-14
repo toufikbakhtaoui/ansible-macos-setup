@@ -1,80 +1,55 @@
 #!/bin/bash
-set -e
 
-# Colors for better output
+# Colors
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 RED='\033[0;31m'
-NC='\033[0m' # No Color
+YELLOW='\033[0;33m'
+NC='\033[0m'
 
-# Function to print status messages
-print_status() {
-  echo -e "${GREEN}$1${NC}"
-}
+echo -e "${GREEN}=== Starting Automated Setup ===${NC}"
 
-# Function to print warning messages
-print_warning() {
-  echo -e "${YELLOW}$1${NC}"
-}
-
-# Function to print error messages
-print_error() {
-  echo -e "${RED}$1${NC}"
-}
-
-# Function to check if a command exists
-command_exists() {
-  command -v "$1" &> /dev/null
-}
-
-print_status "🔧 Checking prerequisites..."
-
-# Check if Xcode Command Line Tools are installed
-if ! command_exists xcode-select; then
-  print_warning "Installing Xcode Command Line Tools..."
-  xcode-select --install || {
-    print_error "Failed to install Xcode Command Line Tools"
+# Fail function with colored output
+fail() {
+    echo -e "${RED}Error: $1${NC}"
     exit 1
-  }
+}
+
+# Step 0: Install Xcode Command Line Tools
+echo -e "${GREEN}✓ Checking Xcode CLI Tools${NC}"
+if ! xcode-select -p &>/dev/null; then
+    echo -e "${YELLOW}→ Installing Xcode CLI Tools (may take several minutes)${NC}"
+    xcode-select --install || fail "Failed to install Xcode CLI Tools"
+    # Wait for installation to complete
+    while ! xcode-select -p &>/dev/null; do
+        sleep 5
+    done
+    sudo xcodebuild -license accept
 fi
 
-print_status "🔧 Installing Homebrew if not present..."
+# Step 1: Install Homebrew if missing
+echo -e "${GREEN}✓ Checking Homebrew${NC}"
+if ! command -v brew &>/dev/null; then
+    echo -e "${YELLOW}→ Installing Homebrew${NC}"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || fail "Failed to install Homebrew"
+    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
 
-if ! command_exists brew; then
-  print_warning "Homebrew not found. Installing..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || {
-    print_error "Failed to install Homebrew"
-    exit 1
-  }
-  
-  # Add Homebrew to PATH if needed
-  if [[ $(uname -m) == "arm64" ]]; then
-    # For Apple Silicon Macs
-    if [[ -f "/opt/homebrew/bin/brew" ]]; then
-      eval "$(/opt/homebrew/bin/brew shellenv)"
-      print_status "Added Homebrew to PATH for Apple Silicon Mac"
-    fi
-  else
-    # For Intel Macs
-    if [[ -f "/usr/local/bin/brew" ]]; then
-      eval "$(/usr/local/bin/brew shellenv)"
-      print_status "Added Homebrew to PATH for Intel Mac"
-    fi
-  fi
+# Step 2: Install Git and Ansible via Homebrew
+echo -e "${GREEN}✓ Installing required tools${NC}"
+brew install git ansible || fail "Failed to install required tools"
+
+# Step 3: Clone configuration repo
+echo -e "${GREEN}✓ Downloading configuration${NC}"
+if [ -d "ansible-macos-setup" ]; then
+    echo -e "${YELLOW}→ Updating existing repository${NC}"
+    cd ansible-macos-setup && git pull && cd .. || fail "Failed to update repository"
 else
-  print_status "Homebrew is already installed"
+    git clone git@github.com/toufikbakhtaoui/ansible-macos-setup.git || fail "Failed to clone repository"
 fi
 
-print_status "📦 Installing Ansible..."
-brew install ansible || {
-  print_error "Failed to install Ansible"
-  exit 1
-}
+# Step 4: Execute Ansible playbook
+echo -e "${GREEN}✓ Running final configuration${NC}"
+cd ansible-macos-setup && ansible-playbook playbook.yml || fail "Ansible playbook failed"
 
-print_status "🚀 Running Ansible playbook..."
-ansible-playbook -i inventory playbook.yml --ask-become-pass || {
-  print_error "Ansible playbook execution failed"
-  exit 1
-}
-
-print_status "✅ Setup completed successfully!"
+echo -e "${GREEN}=== Setup completed successfully! ===${NC}"

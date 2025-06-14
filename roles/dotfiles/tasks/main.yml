@@ -1,5 +1,0 @@
-- name: Stow all dotfiles directories
-  shell: |
-    cd {{ playbook_dir }}/dotfiles && stow *
-  args:
-    executable: /bin/bash

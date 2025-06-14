@@ -23,7 +23,7 @@ This project uses Ansible to automate the setup and configuration of a macOS env
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/ansible-macos-setup.git
+   git clone https://github.com/toufikbakhtaoui/ansible-macos-setup.git
    cd ansible-macos-setup
    ```
 

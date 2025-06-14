@@ -1,0 +1,7 @@
+- name: Create symlinks with stow
+  command: stow -v -t ~ {{ item }}
+  args:
+    chdir: "{{ playbook_dir }}/dotfiles"
+  loop: "{{ lookup('fileglob', 'dotfiles/*').split(',') }}"
+  register: stow_result
+  changed_when: "'LINK' in stow_result.stdout"
